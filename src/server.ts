@@ -1,6 +1,12 @@
-function greet(name: string): string {
-    return `Hello, ${name}!`;
-}
+import express from 'express';
 
-console.log("aaa");
-console.log(greet("TypeScript"));
+const app = express();
+const PORT = 3000;
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server log machin on http://localhost:${PORT}`);
+});
