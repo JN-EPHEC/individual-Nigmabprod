@@ -20,3 +20,9 @@ const etudiants = [
 app.get('/api/data', (req, res) => {
   res.json(etudiants);
 });
+
+app.get('/api/hello/:name',(req, res) => {
+  const nom = req.params.name;
+  if (nom == "Yves") {res.json({ "message": "Bonjour Yves", "timestamp":"2026-01-29T12:00:19.821Z" })}
+
+});
