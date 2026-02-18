@@ -8,12 +8,36 @@ async function loadUsers() {
     
     users.forEach(user => {
       const li = document.createElement('li');
-      li.className = 'list-group-item';
-      li.textContent = `${user.prenom} ${user.nom}`;
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      
+      const span = document.createElement('span');
+      span.textContent = `${user.prenom} ${user.nom}`;
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn btn-danger btn-sm';
+      deleteBtn.textContent = 'X';
+      deleteBtn.onclick = () => deleteUser(user.id);
+      
+      li.appendChild(span);
+      li.appendChild(deleteBtn);
       userList.appendChild(li);
     });
   } catch (error) {
     console.error('Erreur chargement utilisateurs:', error);
+  }
+}
+
+async function deleteUser(id) {
+  try {
+    const response = await fetch(`/api/users/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (response.ok) {
+      await loadUsers();
+    }
+  } catch (error) {
+    console.error('Erreur suppression utilisateur:', error);
   }
 }
 
