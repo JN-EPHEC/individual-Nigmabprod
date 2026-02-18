@@ -1,0 +1,22 @@
+# Database
+*.sqlite
+*.sqlite3
+database.sqlite
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

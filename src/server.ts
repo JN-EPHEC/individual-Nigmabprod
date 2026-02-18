@@ -1,15 +1,33 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import userRoutes from './routes/userRoutes.js';
+import sequelize from './config/database.js';
+import User from './models/User.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server log machin on http://localhost:${PORT}`);
-});
+sequelize.sync()
+  .then(() => {
+    console.log('Database synced successfully');
+    app.listen(PORT, () => {
+      console.log(`Server log machin on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Unable to sync database:', error);
+  });
 
 const etudiants = [
   { id: 1, nom: "Dupont", prenom: "Jean" },
@@ -21,8 +39,10 @@ app.get('/api/data', (req, res) => {
   res.json(etudiants);
 });
 
-app.get('/api/hello/:name',(req, res) => {
-  const nom = req.params.name;
-  if (nom == "Yves") {res.json({ "message": "Bonjour Yves", "timestamp":"2026-01-29T12:00:19.821Z" })}
-
+app.get('/api/hello/:name', (req, res) => {
+  const name = req.params.name;
+  const timestamp = new Date().toISOString();
+  res.json({ message: `Bonjour ${name}`, timestamp });
 });
+
+app.use(userRoutes);
