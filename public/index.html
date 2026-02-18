@@ -51,6 +51,22 @@
         <div class="bg-white p-4 mb-4 main-card">
           <div class="row">
             <div class="col-md-5">
+              <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                  <h5 class="card-title text-primary">
+                    <i class="bi bi-folder-plus"></i> Créer un groupe
+                  </h5>
+                  <form id="groupForm" class="mt-3">
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="groupName" placeholder="Nom du groupe" required>
+                      <button type="submit" class="btn btn-success">
+                        <i class="bi bi-plus"></i>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              
               <div class="card shadow-sm mb-4 mb-md-0">
                 <div class="card-body">
                   <h5 class="card-title text-primary">
@@ -69,6 +85,14 @@
                       </label>
                       <input type="text" class="form-control" id="prenom" placeholder="Jean" required>
                     </div>
+                    <div class="mb-3">
+                      <label for="groupSelect" class="form-label fw-bold">
+                        <i class="bi bi-folder"></i> Groupe
+                      </label>
+                      <select class="form-select" id="groupSelect">
+                        <option value="">Aucun groupe</option>
+                      </select>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">
                       <i class="bi bi-plus-circle"></i> Ajouter
                     </button>
@@ -83,6 +107,12 @@
                   <h5 class="card-title text-primary">
                     <i class="bi bi-list-ul"></i> Liste des utilisateurs
                   </h5>
+                  <div class="mb-3">
+                    <label for="filterGroup" class="form-label">Filtrer par groupe:</label>
+                    <select class="form-select" id="filterGroup">
+                      <option value="">Tous les groupes</option>
+                    </select>
+                  </div>
                   <ul id="userList" class="list-group list-group-flush mt-3">
                     <li class="list-group-item text-muted text-center">
                       <i class="bi bi-hourglass-split"></i> Chargement...

@@ -2,8 +2,9 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import userRoutes from './routes/userRoutes.js';
+import groupRoutes from './routes/groupRoutes.js';
 import sequelize from './config/database.js';
-import User from './models/User.js';
+import './models/associations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,3 +47,4 @@ app.get('/api/hello/:name', (req, res) => {
 });
 
 app.use(userRoutes);
+app.use(groupRoutes);

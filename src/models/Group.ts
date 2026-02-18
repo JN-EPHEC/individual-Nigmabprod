@@ -1,38 +1,28 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-class User extends Model {
+class Group extends Model {
   declare id: number;
-  declare nom: string;
-  declare prenom: string;
-  declare groupId: number | null;
+  declare name: string;
 }
 
-User.init(
+Group.init(
   {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    nom: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    prenom: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    groupId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
     },
   },
   {
     sequelize,
-    tableName: 'users',
+    tableName: 'groups',
     timestamps: true,
   }
 );
 
-export default User;
+export default Group;

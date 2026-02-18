@@ -1,11 +1,17 @@
 import { Router } from 'express';
 import User from '../models/User.js';
+import Group from '../models/Group.js';
 
 const router = Router();
 
 router.get('/api/users', async (req, res) => {
   try {
-    const users = await User.findAll();
+    const { groupId } = req.query;
+    const where = groupId ? { groupId } : {};
+    const users = await User.findAll({ 
+      where,
+      include: [{ model: Group, as: 'group' }]
+    });
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch users' });
@@ -14,10 +20,15 @@ router.get('/api/users', async (req, res) => {
 
 router.post('/api/users', async (req, res) => {
   try {
-    const { nom, prenom } = req.body;
-    const user = await User.create({ nom, prenom });
+    const { nom, prenom, groupId } = req.body;
+    if (!nom || !prenom) {
+      return res.status(400).json({ error: 'Nom and prenom are required' });
+    }
+    const groupIdValue = groupId && groupId !== '' ? parseInt(groupId) : null;
+    const user = await User.create({ nom, prenom, groupId: groupIdValue });
     res.status(201).json(user);
   } catch (error) {
+    console.error('Error creating user:', error);
     res.status(500).json({ error: 'Failed to create user' });
   }
 });
