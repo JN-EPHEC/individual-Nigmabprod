@@ -5,6 +5,7 @@ import userRoutes from './routes/userRoutes.js';
 import groupRoutes from './routes/groupRoutes.js';
 import sequelize from './config/database.js';
 import './models/associations.js';
+import { requestLogger } from './middlewares/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,5 +47,6 @@ app.get('/api/hello/:name', (req, res) => {
   res.json({ message: `Bonjour ${name}`, timestamp });
 });
 
+app.use(requestLogger);
 app.use(userRoutes);
 app.use(groupRoutes);

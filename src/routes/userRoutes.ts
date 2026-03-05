@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import User from '../models/User.js';
 import Group from '../models/Group.js';
+import * as userController from "../controllers/userControllers.js";
 
 const router = Router();
 
@@ -8,10 +9,7 @@ router.get('/api/users', async (req, res) => {
   try {
     const { groupId } = req.query;
     const where = groupId ? { groupId } : {};
-    const users = await User.findAll({ 
-      where,
-      include: [{ model: Group, as: 'group' }]
-    });
+    const users = await userController.getAllUsersFetchGroup(where);
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch users' });

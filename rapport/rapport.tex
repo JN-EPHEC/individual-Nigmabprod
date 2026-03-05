@@ -1,0 +1,176 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amssymb}
+
+\geometry{margin=2.5cm}
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  breaklines=true,
+  frame=single
+}
+
+\title{T2112 - Devoir 1 \\Rapport}
+\author{Nom : KETELS Noah}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\bigskip
+
+\section*{Résumé}
+
+L'objectif de ce travail était d'étendre l'application de gestion d'utilisateurs existante en y ajoutant un système de groupes. Cela permet désormais d'organiser les utilisateurs par équipe ou par fonction (ex: "Serveurs", "Cuisine") et de filtrer l'affichage en conséquence côté frontend.
+
+\section{Objectifs (ce que je souhaite atteindre)}
+
+Mon but était d'ajouter une fonctionnalité de gestion de groupes complète et fonctionnelle :
+\begin{itemize}
+    \item Créer un modèle \texttt{Group} en base de données.
+    \item Établir une relation \texttt{User} $\rightarrow$ \texttt{Group} (un utilisateur appartient à un groupe).
+    \item Ajouter des endpoints API pour lister et créer des groupes.
+    \item Modifier l'endpoint \texttt{GET /api/users} pour qu'il renvoie aussi le groupe de chaque utilisateur et permette le filtrage par \texttt{groupId}.
+    \item Mettre à jour l'interface HTML/JavaScript pour permettre la création de groupes et l'affectation d'un groupe lors de l'ajout/modification d'un utilisateur.
+\end{itemize}
+
+\section{Stratégie et raisonnement}
+
+J'ai suivi une approche incrémentale pour ne pas tout casser d'un coup :
+\begin{enumerate}
+    \item \textbf{Côté base de données :} Définir d'abord le modèle \texttt{Group} avec Sequelize, puis ajouter la clé étrangère \texttt{groupId} dans le modèle \texttt{User}. J'ai choisi une relation simple : un groupe peut avoir plusieurs utilisateurs, mais un utilisateur n'a qu'un seul groupe (ou aucun, car la clé est nullable).
+    \item \textbf{Côté serveur (API) :} Créer les routes pour les groupes (\texttt{GET /api/groups}, \texttt{POST /api/groups}) et adapter la route des utilisateurs pour inclure le modèle associé (utilisation de l'option \texttt{include} de Sequelize). J'ai aussi ajouté une validation basique des entrées pour éviter les erreurs 500.
+    \item \textbf{Côté client :} Charger dynamiquement la liste des groupes dans un \texttt{<select>} au moment du chargement de la page et lors de l'affichage du formulaire. Afficher le nom du groupe sous forme de badge à côté de chaque utilisateur.
+\end{enumerate}
+
+\section{Réalisation (ce que j'ai réellement atteint et comment)}
+\subsection{Fonctionnalités ajoutées}
+\begin{itemize}
+    \item \textbf{Modèle Group :} Fichier \texttt{src/models/Group.ts}
+    \item \textbf{Mise à jour du modèle User :} Ajout de la propriété \texttt{groupId} et définition de la relation \texttt{belongsTo} dans \texttt{src/models/User.ts}
+    \item \textbf{Associations :} Définition des relations croisées dans \texttt{src/models/associations.ts}
+    \item \textbf{Nouvelles routes API :} \texttt{src/routes/groups.ts} avec les endpoints \texttt{GET /api/groups} et \texttt{POST /api/groups}
+    \item \textbf{Modification de la route users :} Filtrage par \texttt{groupId} via query parameter et inclusion du groupe dans la réponse (\texttt{src/routes/users.ts})
+    \item \textbf{Interface utilisateur :} Ajout d'un champ de sélection de groupe dans le formulaire principal et affichage du groupe dans la liste des utilisateurs (\texttt{public/index.html} et \texttt{public/script.js})
+\end{itemize}
+
+\subsection{Exemple de code}
+J'ai modifié la route \texttt{GET /api/users} pour qu'elle accepte un paramètre \texttt{groupId} dans la query string. Si ce paramètre est présent, on filtre les utilisateurs sur cette valeur. On utilise aussi \texttt{include} pour récupérer les infos du groupe associé.
+
+\begin{lstlisting}[caption={Extrait de src/routes/users.ts}]
+router.get('/api/users', async (req, res) => {
+  try {
+    const { groupId } = req.query;
+    const whereCondition = groupId ? { groupId } : {};
+    
+    const users = await User.findAll({
+      where: whereCondition,
+      include: [{ model: Group, as: 'group' }]
+    });
+    
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+\end{lstlisting}
+
+Pour la création d'un groupe, j'ai ajouté un endpoint simple avec validation :
+
+\begin{lstlisting}[caption={Extrait de src/routes/groups.ts}]
+router.post('/api/groups', async (req, res) => {
+  try {
+    const { name } = req.body;
+    
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ 
+        error: 'Le nom du groupe est requis' 
+      });
+    }
+    
+    const newGroup = await Group.create({ 
+      name: name.trim() 
+    });
+    res.status(201).json(newGroup);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+\end{lstlisting}
+
+\subsection{Captures d'écran}
+Voici le résultat obtenu après l'implémentation. On voit bien le nouveau champ "Groupe" dans le formulaire et les badges à côté de chaque utilisateur.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{screenshots/liste-utilisateurs-avec-groupes.png}
+  \caption{Capture d'écran de l'interface avec la liste des utilisateurs et leurs groupes respectifs}
+  \label{fig:interface-groupes}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{screenshots/creation-groupe.png}
+  \caption{Formulaire de création d'un nouveau groupe}
+  \label{fig:creation-groupe}
+\end{figure}
+
+\newpage
+\section{Annexes}
+\subsection{Code source - src/models/Group.ts}
+\label{ann:group-model}
+\begin{lstlisting}
+import { DataTypes, Model } from 'sequelize';
+import sequelize from '../config/database.js';
+
+class Group extends Model {
+  declare id: number;
+  declare name: string;
+}
+
+Group.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  }
+}, {
+  sequelize,
+  tableName: 'groups',
+  timestamps: true
+});
+
+export default Group;
+\end{lstlisting}
+
+\subsection{Code source - Extrait de src/models/associations.ts}
+\label{ann:associations}
+\begin{lstlisting}
+import Group from './Group.js';
+import User from './User.js';
+
+Group.hasMany(User, { 
+  foreignKey: 'groupId', 
+  as: 'users' 
+});
+
+User.belongsTo(Group, { 
+  foreignKey: 'groupId', 
+  as: 'group' 
+});
+
+export { User, Group };
+\end{lstlisting}
+
+\end{document}
