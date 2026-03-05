@@ -1,26 +1,42 @@
-import type { Request, Response } from "express";
-import User from "../models/User";
-import { Group } from "../models/associations";
+import type { Request, Response, NextFunction } from "express";
+import User from "../models/User.js";
+import Group from "../models/Group.js";
 
-
-export const getAllUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-    const users = await User.findAll();
-        res.status(200).json(users);
+        const { groupId } = req.query;
+        const where = groupId ? { groupId } : {};
+        const users = await User.findAll({ where, include: [{ model: Group, as: 'group' }] });
+        res.json(users);
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        next(error);
     }
 };
 
-export const getAllUsersFetchGroup = async (where: any) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-    const users = await User.findAll({ 
-      where,
-      include: [{ model: Group, as: 'group' }]
-    });
-        return users;
+        const { nom, prenom, groupId } = req.body;
+        if (!nom || !prenom) {
+            return res.status(400).json({ error: 'Nom and prenom are required' });
+        }
+        const groupIdValue = groupId && groupId !== '' ? parseInt(groupId) : null;
+        const user = await User.create({ nom, prenom, groupId: groupIdValue });
+        res.status(201).json(user);
     } catch (error) {
-        console.error('Error fetching users:', error);
-        throw error;
+        next(error);
+    }
+};
+
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const deleted = await User.destroy({ where: { id } });
+        if (deleted) {
+            res.status(204).send();
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        next(error);
     }
 };

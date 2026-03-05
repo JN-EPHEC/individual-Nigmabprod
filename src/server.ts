@@ -6,6 +6,10 @@ import groupRoutes from './routes/groupRoutes.js';
 import sequelize from './config/database.js';
 import './models/associations.js';
 import { requestLogger } from './middlewares/logger.js';
+import { errorHandler } from './middlewares/errorHandler.js';
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
+import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,5 +52,8 @@ app.get('/api/hello/:name', (req, res) => {
 });
 
 app.use(requestLogger);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(userRoutes);
 app.use(groupRoutes);
+app.use(errorHandler);
+app.use(cors());
