@@ -27,6 +27,34 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const user = await User.findByPk(id, { include: [{ model: Group, as: 'group' }] });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const { nom, prenom, groupId } = req.body;
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        await user.update({ nom, prenom, groupId: groupId ?? null });
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;

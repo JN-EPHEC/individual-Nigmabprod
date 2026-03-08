@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userControllers.js';
+import { checkIdParam } from '../middlewares/checkIdParam.js';
 
 const router = Router();
 
@@ -14,7 +15,9 @@ const router = Router();
  *         description: Succès
  */
 router.get('/api/users', userController.getUsers);
+router.get('/api/users/:id', checkIdParam, userController.getUserById);
 router.post('/api/users', userController.createUser);
-router.delete('/api/users/:id', userController.deleteUser);
+router.put('/api/users/:id', checkIdParam, userController.updateUser);
+router.delete('/api/users/:id', checkIdParam, userController.deleteUser);
 
 export default router;
