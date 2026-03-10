@@ -1,15 +1,15 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import userRoutes from './routes/userRoutes.js';
-import groupRoutes from './routes/groupRoutes.js';
+import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 import sequelize from './config/database.js';
 import './models/associations.js';
 import { requestLogger } from './middlewares/logger.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-import swaggerUi from "swagger-ui-express";
-import { swaggerSpec } from "./config/swagger";
-import cors from 'cors';
+import userRoutes from './routes/userRoutes.js';
+import groupRoutes from './routes/groupRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,43 +17,19 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
-
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
-});
-
-sequelize.sync()
-  .then(() => {
-    console.log('Database synced successfully');
-    app.listen(PORT, () => {
-      console.log(`Server log machin on http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error('Unable to sync database:', error);
-  });
-
-const etudiants = [
-  { id: 1, nom: "Dupont", prenom: "Jean" },
-  { id: 2, nom: "Martin", prenom: "Sophie" },
-  { id: 3, nom: "Doe", prenom: "John" },
-];
-
-app.get('/api/data', (req, res) => {
-  res.json(etudiants);
-});
-
-app.get('/api/hello/:name', (req, res) => {
-  const name = req.params.name;
-  const timestamp = new Date().toISOString();
-  res.json({ message: `Bonjour ${name}`, timestamp });
-});
-
+app.use(express.static(path.join(__dirname, '../../public')));
 app.use(requestLogger);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(userRoutes);
 app.use(groupRoutes);
 app.use(errorHandler);
-app.use(cors());
+
+sequelize.sync()
+  .then(() => {
+    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+  })
+  .catch((error) => {
+    console.error('Database sync failed:', error);
+  });
