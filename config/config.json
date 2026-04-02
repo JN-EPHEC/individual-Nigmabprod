@@ -1,12 +1,8 @@
 {
   "development": {
-  "username": "postgres",
-  "password": "JeSuisLeDanger030606",
-  "database": "postgres",
-  "host": "db.aljtpkdihstnejkvjxpt.supabase.co",
-  "port": 5432,
-  "dialect": "postgres",
-  "dialectOptions": {
+    "url": "postgresql://postgres.aljtpkdihstnejkvjxpt:JeSuisLeDanger030606@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
+    "dialect": "postgres",
+    "dialectOptions": {
       "ssl": {
         "require": true,
         "rejectUnauthorized": false

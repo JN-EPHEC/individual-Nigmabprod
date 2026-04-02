@@ -1,13 +1,16 @@
 import type { Request, Response, NextFunction } from "express";
-import User from "../models/User.js";
-import Group from "../models/Group.js";
+import { supabase } from "../config/database.js";
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { groupId } = req.query;
-        const where = groupId ? { groupId } : {};
-        const users = await User.findAll({ where, include: [{ model: Group, as: 'group' }] });
-        res.json(users);
+        let query = supabase.from('users').select('*, groups(*)');
+        if (groupId) {
+            query = query.eq('groupId', groupId);
+        }
+        const { data, error } = await query;
+        if (error) throw error;
+        res.json(data);
     } catch (error) {
         next(error);
     }
@@ -20,8 +23,14 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
             return res.status(400).json({ error: 'Nom and prenom are required' });
         }
         const groupIdValue = groupId && groupId !== '' ? parseInt(groupId) : null;
-        const user = await User.create({ nom, prenom, groupId: groupIdValue });
-        res.status(201).json(user);
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+            .from('users')
+            .insert({ nom, prenom, groupId: groupIdValue, createdAt: now, updatedAt: now })
+            .select()
+            .single();
+        if (error) throw error;
+        res.status(201).json(data);
     } catch (error) {
         next(error);
     }
@@ -30,11 +39,16 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = parseInt(req.params.id as string);
-        const user = await User.findByPk(id, { include: [{ model: Group, as: 'group' }] });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+        const { data, error } = await supabase
+            .from('users')
+            .select('*, groups(*)')
+            .eq('id', id)
+            .single();
+        if (error) {
+            if (error.code === 'PGRST116') return res.status(404).json({ error: 'User not found' });
+            throw error;
         }
-        res.json(user);
+        res.json(data);
     } catch (error) {
         next(error);
     }
@@ -44,12 +58,17 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     try {
         const id = parseInt(req.params.id as string);
         const { nom, prenom, groupId } = req.body;
-        const user = await User.findByPk(id);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+        const { data, error } = await supabase
+            .from('users')
+            .update({ nom, prenom, groupId: groupId ?? null, updatedAt: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) {
+            if (error.code === 'PGRST116') return res.status(404).json({ error: 'User not found' });
+            throw error;
         }
-        await user.update({ nom, prenom, groupId: groupId ?? null });
-        res.json(user);
+        res.json(data);
     } catch (error) {
         next(error);
     }
@@ -58,12 +77,12 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const deleted = await User.destroy({ where: { id } });
-        if (deleted) {
-            res.status(204).send();
-        } else {
-            res.status(404).json({ error: 'User not found' });
-        }
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+        res.status(204).send();
     } catch (error) {
         next(error);
     }

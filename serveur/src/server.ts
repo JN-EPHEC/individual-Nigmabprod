@@ -1,11 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
-import sequelize from './config/database.js';
-import './models/associations.js';
 import { requestLogger } from './middlewares/logger.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import userRoutes from './routes/userRoutes.js';
@@ -26,10 +25,4 @@ app.use(userRoutes);
 app.use(groupRoutes);
 app.use(errorHandler);
 
-sequelize.sync()
-  .then(() => {
-    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-  })
-  .catch((error) => {
-    console.error('Database sync failed:', error);
-  });
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
